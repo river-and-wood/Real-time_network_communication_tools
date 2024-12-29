@@ -109,7 +109,7 @@ public class Serve {
                             if (targetOut != null) {
                                 // 将广播消息发送给每个目标用户
                                 targetOut.println("BROADCAST:" + username + ":" + broadcastMessage);
-                                s_gui.appendMessage("发送广播给 " + targetUser + ": " + broadcastMessage, 15, Color.MAGENTA, StyleConstants.ALIGN_LEFT);
+                                s_gui.appendMessage("发送广播给 " + targetUser + ": " + broadcastMessage, 15, Color.BLACK, StyleConstants.ALIGN_LEFT);
                             } else {
                                 // 如果目标用户不存在或已下线，通知发送者
                                 out.println("系统消息: 用户 " + targetUser + " 不存在或已下线！");
@@ -144,7 +144,7 @@ public class Serve {
                         // 发送确认给发送者
                         //out.println("PRIVATE:" + targetUser + ":" + privateMessage);
                         s_gui.appendMessage("私聊消息来自 " + username + "，目标: " + targetUser + "，内容: \"" + privateMessage + "\"",
-                                15, Color.GREEN, StyleConstants.ALIGN_LEFT);
+                                15, Color.black, StyleConstants.ALIGN_LEFT);
                     } else {
                         out.println("系统消息: 用户 " + targetUser + " 不存在或已下线！");
                         s_gui.appendMessage("私聊失败，目标用户不存在或已下线: " + targetUser, 15, Color.RED, StyleConstants.ALIGN_LEFT);
@@ -174,7 +174,7 @@ public class Serve {
             }
             s_gui.appendMessage(MessageFormat.format("已广播用户列表: {0}", userList.toString()),
                     15,
-                    Color.CYAN,
+                    Color.BLACK,
                     StyleConstants.ALIGN_LEFT);
         }
 
@@ -192,6 +192,39 @@ public class Serve {
                 e.printStackTrace();
             }
             s_gui.appendMessage("用户 " + username + " 已断开连接", 15, Color.RED, StyleConstants.ALIGN_LEFT);
+        }
+    }
+    // 断开客户端连接
+    // 断开客户端连接
+    // 在线客户端的列表（存储 PrintWriter）
+
+    // 在线客户端 Socket 的列表
+    private static final Map<String, Socket> clientSockets = new HashMap<>();  // 存储每个客户端的 Socket
+    // 断开客户端连接的功能
+    public static void disconnectClient(String username) {
+        synchronized (clients) {
+            PrintWriter clientOut = clients.get(username);
+            Socket clientSocket = clientSockets.get(username);  // 获取对应的 Socket
+
+            if (clientOut != null || clientSocket != null) {
+                try {
+                    // 关闭 PrintWriter 输出流
+                    clientOut.close();
+                    // 关闭 Socket 连接
+                    clientSocket.close();
+                    // 从 clients 中移除该用户
+                    clients.remove(username);
+                    clientSockets.remove(username);  // 也要从 Socket 列表中移除
+                    // 广播更新后的在线用户列表
+                    s_gui.appendMessage("用户 " + username + " 已被断开连接", 15, Color.RED, StyleConstants.ALIGN_LEFT);
+
+                } catch (IOException e) {
+                    s_gui.appendMessage("断开用户 " + username + " 时出错", 15, Color.RED, StyleConstants.ALIGN_LEFT);
+                    e.printStackTrace();
+                }
+            } else {
+                s_gui.appendMessage("用户 " + username + " 不在线，无法断开连接", 15, Color.RED, StyleConstants.ALIGN_LEFT);
+            }
         }
     }
 }
