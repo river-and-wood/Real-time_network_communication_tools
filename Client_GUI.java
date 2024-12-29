@@ -3,6 +3,8 @@ package GUI_Socket;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +40,17 @@ public class Client_GUI extends JFrame {
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
         userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        userList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) { // 双击用户列表中的某个用户
+                    String selectedUser = userList.getSelectedValue();
+                    if (selectedUser != null && !selectedUser.equals(Client.c_name)) {
+                        openOrUpdatePrivateWindow(selectedUser, ""); // 打开私聊窗口
+                    }
+                }
+            }
+        });
         JScrollPane userScrollPane = new JScrollPane(userList);
         userScrollPane.setPreferredSize(new Dimension(150, 0));
         mainPanel.add(userScrollPane, BorderLayout.EAST);
@@ -70,7 +83,15 @@ public class Client_GUI extends JFrame {
                         if (parts.length == 3) {
                             String sender = parts[1];
                             String message = parts[2];
-                            openOrUpdatePrivateWindow(sender, "[广播] " + message);
+                            // 仅接收方显示广播消息
+                            appendMessage("[广播] " + sender, message, Color.MAGENTA);
+                        }
+                    } else if (response.startsWith("PRIVATE:")) {
+                        String[] parts = response.split(":", 3);
+                        if (parts.length == 3) {
+                            String sender = parts[1];
+                            String message = parts[2];
+                            openOrUpdatePrivateWindow(sender, message);
                         }
                     } else {
                         appendMessage("服务器", response, Color.BLACK);
@@ -103,9 +124,10 @@ public class Client_GUI extends JFrame {
 
     private void openBroadcastWindow() {
         JDialog broadcastDialog = new JDialog(this, "选择广播用户", true);
-        broadcastDialog.setSize(300, 400);
+        broadcastDialog.setSize(400, 500);
         broadcastDialog.setLayout(new BorderLayout());
 
+        // 添加复选框列表
         JPanel userPanel = new JPanel();
         userPanel.setLayout(new BoxLayout(userPanel, BoxLayout.Y_AXIS));
         Map<String, JCheckBox> checkBoxes = new HashMap<>();
@@ -135,11 +157,11 @@ public class Client_GUI extends JFrame {
                 }
             }
             if (targets.length() > 0) {
-                targets.setLength(targets.length() - 1);
+                targets.setLength(targets.length() - 1); // 移除最后一个逗号
             }
             String message = messageField.getText().trim();
             if (!message.isEmpty() && targets.length() > 0) {
-                client.sendMessage("BROADCAST:" + targets + ":" + message);
+                client.sendBroadcastMessage(targets.toString(), message); // 调用广播发送方法
                 broadcastDialog.dispose();
             } else {
                 JOptionPane.showMessageDialog(broadcastDialog, "请选择用户并输入消息！", "错误", JOptionPane.ERROR_MESSAGE);
@@ -152,8 +174,10 @@ public class Client_GUI extends JFrame {
     private void openOrUpdatePrivateWindow(String sender, String message) {
         SwingUtilities.invokeLater(() -> {
             Client_GUI1 privateWindow = privateChatWindows.computeIfAbsent(sender,
-                    key -> new Client_GUI1(client, sender + " (广播消息)", () -> privateChatWindows.remove(sender)));
-            privateWindow.appendMessage(sender, message, Color.ORANGE);
+                    key -> new Client_GUI1(client, sender, () -> privateChatWindows.remove(sender)));
+            if (!message.isEmpty()) {
+                privateWindow.appendMessage(sender, message, Color.ORANGE);
+            }
         });
     }
 

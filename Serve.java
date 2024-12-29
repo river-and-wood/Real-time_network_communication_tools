@@ -57,11 +57,11 @@ public class Serve {
                 String message;
                 while ((message = in.readLine()) != null) {
                     if (message.startsWith("BROADCAST:")) {
-                        handleBroadcastMessage(message.substring(10));
+                        handleBroadcastMessage(message.substring(10)); // 处理广播消息
                     } else if (message.startsWith("@")) {
-                        handlePrivateMessage(message);
+                        handlePrivateMessage(message); // 处理私聊消息
                     } else {
-                        broadcastMessage(username, message);
+                        broadcastMessage(username, message); // 处理普通群聊消息
                     }
                 }
             } catch (IOException e) {
@@ -71,6 +71,7 @@ public class Serve {
             }
         }
 
+        // 广播普通消息到所有客户端
         private void broadcastMessage(String sender, String message) {
             synchronized (clients) {
                 for (PrintWriter clientOut : clients.values()) {
@@ -80,6 +81,7 @@ public class Serve {
             s_gui.appendMessage(sender + ": " + message, 15, Color.BLACK, 1);
         }
 
+        // 处理广播消息
         private void handleBroadcastMessage(String message) {
             int firstColon = message.indexOf(":");
             int secondColon = message.indexOf(":", firstColon + 1);
@@ -92,16 +94,19 @@ public class Serve {
                     for (String targetUser : targetUsers) {
                         PrintWriter targetOut = clients.get(targetUser);
                         if (targetOut != null) {
+                            // 将广播消息发送给每个目标用户
                             targetOut.println("BROADCAST:" + username + ":" + broadcastMessage);
                         }
                     }
                 }
 
-                // 在服务器日志中记录广播信息
-                s_gui.appendMessage("广播消息来自 " + username + ": " + broadcastMessage + " (目标用户: " + targetUsersString + ")", 15, Color.BLACK, 1);
+                // 在服务器日志中记录广播消息
+                s_gui.appendMessage("广播消息来自 " + username + "，内容: \"" + broadcastMessage + "\"，接收者: " + targetUsersString,
+                        15, Color.BLUE, 1);
             }
         }
 
+        // 处理私聊消息
         private void handlePrivateMessage(String message) {
             int colonIndex = message.indexOf(":");
             if (colonIndex > 0) {
@@ -110,10 +115,7 @@ public class Serve {
                 synchronized (clients) {
                     PrintWriter targetOut = clients.get(targetUser);
                     if (targetOut != null) {
-                        // 给接收方发送私聊消息，格式为：PRIVATE:发送方:消息内容
                         targetOut.println("PRIVATE:" + username + ":" + privateMessage);
-
-                        // 给发送方发送确认消息
                         out.println("PRIVATE:" + targetUser + ":" + privateMessage);
                     } else {
                         out.println("用户 " + targetUser + " 不在线！");
@@ -122,13 +124,14 @@ public class Serve {
             }
         }
 
+        // 广播当前在线用户列表
         private void broadcastUserList() {
             StringBuilder userList = new StringBuilder("USERLIST:");
             for (String user : clients.keySet()) {
                 userList.append(user).append(",");
             }
             if (userList.length() > 10) {
-                userList.setLength(userList.length() - 1); // 去掉最后的逗号
+                userList.setLength(userList.length() - 1);
             }
             synchronized (clients) {
                 for (PrintWriter clientOut : clients.values()) {
@@ -137,11 +140,12 @@ public class Serve {
             }
         }
 
+        // 用户断开时清理
         private void cleanup() {
             synchronized (clients) {
                 if (username != null) {
                     clients.remove(username);
-                    broadcastUserList(); // 更新用户列表
+                    broadcastUserList();
                 }
             }
             try {

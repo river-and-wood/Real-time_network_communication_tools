@@ -9,13 +9,15 @@ public class Client_GUI1 extends JFrame {
     private final JTextField inputField;
     private final StyledDocument doc;
     private final Client client;
+    private final String targetUser; // 目标用户
     private final Runnable onCloseCallback;
 
-    public Client_GUI1(Client client, String title, Runnable onCloseCallback) {
+    public Client_GUI1(Client client, String targetUser, Runnable onCloseCallback) {
         this.client = client;
+        this.targetUser = targetUser; // 保存目标用户
         this.onCloseCallback = onCloseCallback;
 
-        setTitle(title);
+        setTitle("与 " + targetUser + " 的聊天");
         setBounds(400, 150, 400, 300);
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -62,6 +64,7 @@ public class Client_GUI1 extends JFrame {
     private void sendPrivateMessage() {
         String message = inputField.getText().trim();
         if (!message.isEmpty()) {
+            client.sendMessage("@" + targetUser + ":" + message); // 发送私聊消息
             appendMessage("我", message, Color.BLUE);
             inputField.setText("");
         }

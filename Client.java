@@ -43,6 +43,15 @@ public class Client {
         }
     }
 
+    public void sendBroadcastMessage(String targets, String message) {
+        if (out != null) {
+            // 广播消息格式：BROADCAST:目标1,目标2,...:消息内容
+            out.println("BROADCAST:" + targets + ":" + message);
+        } else {
+            JOptionPane.showMessageDialog(null, "广播失败，服务器未连接", "错误", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     public void closeConnection() {
         try {
             if (out != null) {
