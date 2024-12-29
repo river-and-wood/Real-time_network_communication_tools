@@ -35,8 +35,11 @@ public class Login_GUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "用户名不能为空！", "错误", JOptionPane.ERROR_MESSAGE);
             } else {
                 Client.c_name = username; // 设置用户名
-                new Client_GUI(); // 进入主聊天界面
-                dispose(); // 关闭登录窗口
+                Client client = new Client(); // 初始化客户端
+                if (client.connected) { // 如果成功连接
+                    new Client_GUI(client); // 进入主聊天界面
+                    dispose(); // 关闭登录窗口
+                }
             }
         });
 

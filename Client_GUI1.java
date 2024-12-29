@@ -9,16 +9,16 @@ public class Client_GUI1 extends JFrame {
     private final JTextField inputField;
     private final StyledDocument doc;
     private final Client client;
-    private final String targetUser; // 目标用户
+    private final String targetUser; // 目标用户或广播标识
     private final Runnable onCloseCallback;
 
     public Client_GUI1(Client client, String targetUser, Runnable onCloseCallback) {
         this.client = client;
-        this.targetUser = targetUser; // 保存目标用户
+        this.targetUser = targetUser; // 保存目标用户或广播标识
         this.onCloseCallback = onCloseCallback;
 
         setTitle("与 " + targetUser + " 的聊天");
-        setBounds(400, 150, 400, 300);
+        setBounds(450, 150, 400, 300);
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -45,7 +45,7 @@ public class Client_GUI1 extends JFrame {
         inputPanel.add(sendButton, BorderLayout.EAST);
         mainPanel.add(inputPanel, BorderLayout.SOUTH);
 
-        sendButton.addActionListener(e -> sendPrivateMessage());
+        sendButton.addActionListener(e -> sendMessage());
 
         add(mainPanel);
         setVisible(true);
@@ -61,11 +61,19 @@ public class Client_GUI1 extends JFrame {
         }
     }
 
-    private void sendPrivateMessage() {
+    private void sendMessage() {
         String message = inputField.getText().trim();
         if (!message.isEmpty()) {
-            client.sendMessage("@" + targetUser + ":" + message); // 发送私聊消息
-            appendMessage("我", message, Color.BLUE);
+            if (targetUser.startsWith("Broadcast from ")) {
+                // 如果是广播消息窗口，发送私聊消息给广播发送者
+                String sender = targetUser.substring("Broadcast from ".length());
+                client.sendPrivateMessage(sender, message); // 回复给广播发送者
+                appendMessage("我", message, Color.BLUE);
+            } else {
+                // 普通私聊消息
+                client.sendPrivateMessage(targetUser, message); // 发送私聊消息
+                appendMessage("我", message, Color.BLUE);
+            }
             inputField.setText("");
         }
     }

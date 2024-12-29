@@ -51,7 +51,9 @@ public class Serve_GUI extends JFrame {
             Style style = textPane.addStyle("Style", null);
             StyleConstants.setForeground(style, color); // 设置文字颜色
             StyleConstants.setFontSize(style, size); // 设置字体大小
+            StyleConstants.setAlignment(style, alignment); // 设置对齐方式
             doc.insertString(doc.getLength(), msg + "\n", style); // 插入文字
+            doc.setParagraphAttributes(doc.getLength(), 1, style, false);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
