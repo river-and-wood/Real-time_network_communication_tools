@@ -50,6 +50,7 @@ public class Serve {
                     synchronized (clients) {
                         if (clients.containsKey(username)) {
                             out.println("系统消息:用户名已存在，请重新登录！");
+                            s_gui.appendMessage("拒绝重复用户名连接: " + username, 15, Color.RED, StyleConstants.ALIGN_LEFT);
                             clientSocket.close();
                             return;
                         }
@@ -108,9 +109,11 @@ public class Serve {
                             if (targetOut != null) {
                                 // 将广播消息发送给每个目标用户
                                 targetOut.println("BROADCAST:" + username + ":" + broadcastMessage);
+                                s_gui.appendMessage("发送广播给 " + targetUser + ": " + broadcastMessage, 15, Color.MAGENTA, StyleConstants.ALIGN_LEFT);
                             } else {
                                 // 如果目标用户不存在或已下线，通知发送者
                                 out.println("系统消息: 用户 " + targetUser + " 不存在或已下线！");
+                                s_gui.appendMessage("广播失败，目标用户不存在或已下线: " + targetUser, 15, Color.RED, StyleConstants.ALIGN_LEFT);
                             }
                         }
                     }
@@ -140,13 +143,13 @@ public class Serve {
                         targetOut.println("PRIVATE:" + username + ":" + privateMessage);
                         // 发送确认给发送者
                         out.println("PRIVATE:" + targetUser + ":" + privateMessage);
+                        s_gui.appendMessage("私聊消息来自 " + username + "，目标: " + targetUser + "，内容: \"" + privateMessage + "\"",
+                                15, Color.GREEN, StyleConstants.ALIGN_LEFT);
                     } else {
                         out.println("系统消息: 用户 " + targetUser + " 不存在或已下线！");
+                        s_gui.appendMessage("私聊失败，目标用户不存在或已下线: " + targetUser, 15, Color.RED, StyleConstants.ALIGN_LEFT);
                     }
                 }
-                // 在服务器日志中记录私聊消息
-                s_gui.appendMessage("私聊消息来自 " + username + "，目标: " + targetUser + "，内容: \"" + privateMessage + "\"",
-                        15, Color.GREEN, StyleConstants.ALIGN_LEFT);
             } else {
                 // 如果格式不正确，记录错误日志
                 s_gui.appendMessage("收到格式错误的私聊消息: " + message, 15, Color.RED, StyleConstants.ALIGN_LEFT);
@@ -168,6 +171,7 @@ public class Serve {
                     clientOut.println(userList.toString());
                 }
             }
+            s_gui.appendMessage("已广播用户列表: " + userList.toString(), 15, Color.CYAN, StyleConstants.ALIGN_LEFT);
         }
 
         // 用户断开时清理

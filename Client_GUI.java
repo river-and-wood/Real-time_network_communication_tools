@@ -208,6 +208,7 @@ public class Client_GUI extends JFrame {
             for (String user : users.split(",")) {
                 userListModel.addElement(user);
             }
+            System.out.println("用户列表已更新: " + users); // 调试日志
         });
     }
 }
