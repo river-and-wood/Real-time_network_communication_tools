@@ -17,26 +17,22 @@ public class Client {
             socket = new Socket("localhost", 12345); // 连接服务器
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-
-            // 发送用户名到服务器
-            out.println(c_name);
-
-            // 读取服务器的响应
-            String response = in.readLine();
-            if (response != null && response.startsWith("系统消息:")) {
-                JOptionPane.showMessageDialog(null, response.substring(5), "错误", JOptionPane.ERROR_MESSAGE);
-                // 关闭连接
-                closeConnection();
-            } else {
-                connected = true;
-                JOptionPane.showMessageDialog(null, "已成功连接到服务器", "连接成功", JOptionPane.INFORMATION_MESSAGE);
-            }
+            connected = true;
+            System.out.println("已连接到服务器。");
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "无法连接到服务器，请检查服务器是否启动", "连接失败", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }
 
+    // 发送用户名到服务器
+    public void sendUsername() {
+        if (out != null && connected) {
+            out.println(c_name);
+        }
+    }
+
+    // 发送普通消息到服务器
     public void sendMessage(String message) {
         if (out != null && connected) {
             out.println(message); // 发送消息到服务器
@@ -45,6 +41,7 @@ public class Client {
         }
     }
 
+    // 发送私聊消息到服务器
     public void sendPrivateMessage(String targetUser, String message) {
         if (out != null && connected) {
             // 私聊消息格式：@目标用户名:消息内容
@@ -54,6 +51,7 @@ public class Client {
         }
     }
 
+    // 发送广播消息到服务器
     public void sendBroadcastMessage(String targets, String message) {
         if (out != null && connected) {
             // 广播消息格式：BROADCAST:目标1,目标2,...:消息内容
@@ -63,6 +61,7 @@ public class Client {
         }
     }
 
+    // 关闭连接
     public void closeConnection() {
         try {
             if (out != null && connected) {

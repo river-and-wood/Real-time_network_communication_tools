@@ -4,6 +4,7 @@ import javax.swing.text.StyleConstants;
 import java.awt.Color;
 import java.io.*;
 import java.net.*;
+import java.text.MessageFormat;
 import java.util.*;
 
 public class Serve {
@@ -14,10 +15,10 @@ public class Serve {
         try (ServerSocket serverSocket = new ServerSocket(12345)) {
             s_gui.appendMessage("服务器已启动，等待客户端连接...", 15, Color.BLACK, StyleConstants.ALIGN_LEFT);
 
-            while (true) {
+            do {
                 Socket clientSocket = serverSocket.accept();
                 new Thread(new ClientHandler(clientSocket)).start();
-            }
+            } while (true);
         } catch (IOException e) {
             s_gui.appendMessage("错误！无法启动服务器！", 17, Color.RED, StyleConstants.ALIGN_LEFT);
             e.printStackTrace();
@@ -25,13 +26,12 @@ public class Serve {
     }
 
     public static void main(String[] args) {
-        new Serve();
+        Serve serve = new Serve();
     }
 
     private static class ClientHandler implements Runnable {
         private final Socket clientSocket;
         private PrintWriter out;
-        private BufferedReader in;
         private String username;
 
         public ClientHandler(Socket socket) {
@@ -41,7 +41,7 @@ public class Serve {
         @Override
         public void run() {
             try {
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
 
                 // 接收用户名
@@ -142,7 +142,7 @@ public class Serve {
                         // 发送私聊消息给目标用户
                         targetOut.println("PRIVATE:" + username + ":" + privateMessage);
                         // 发送确认给发送者
-                        out.println("PRIVATE:" + targetUser + ":" + privateMessage);
+                        //out.println("PRIVATE:" + targetUser + ":" + privateMessage);
                         s_gui.appendMessage("私聊消息来自 " + username + "，目标: " + targetUser + "，内容: \"" + privateMessage + "\"",
                                 15, Color.GREEN, StyleConstants.ALIGN_LEFT);
                     } else {
@@ -159,7 +159,8 @@ public class Serve {
 
         // 广播当前在线用户列表
         private void broadcastUserList() {
-            StringBuilder userList = new StringBuilder("USERLIST:");
+            StringBuilder userList;
+            userList = new StringBuilder("USERLIST:");
             for (String user : clients.keySet()) {
                 userList.append(user).append(",");
             }
@@ -168,10 +169,13 @@ public class Serve {
             }
             synchronized (clients) {
                 for (PrintWriter clientOut : clients.values()) {
-                    clientOut.println(userList.toString());
+                    clientOut.println(userList);
                 }
             }
-            s_gui.appendMessage("已广播用户列表: " + userList.toString(), 15, Color.CYAN, StyleConstants.ALIGN_LEFT);
+            s_gui.appendMessage(MessageFormat.format("已广播用户列表: {0}", userList.toString()),
+                    15,
+                    Color.CYAN,
+                    StyleConstants.ALIGN_LEFT);
         }
 
         // 用户断开时清理

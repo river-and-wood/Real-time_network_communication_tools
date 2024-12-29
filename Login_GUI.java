@@ -38,6 +38,7 @@ public class Login_GUI extends JFrame {
                 Client client = new Client(); // 初始化客户端
                 if (client.connected) { // 如果成功连接
                     new Client_GUI(client); // 进入主聊天界面
+                    client.sendUsername(); // 发送用户名
                     dispose(); // 关闭登录窗口
                 }
             }

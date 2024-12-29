@@ -76,7 +76,7 @@ public class Client_GUI extends JFrame {
         add(mainPanel);
         setVisible(true);
 
-        // 接收服务器消息
+        // 启动接收线程
         new Thread(() -> {
             try {
                 String response;
